@@ -1,0 +1,85 @@
+Nume:   Dumitrescu Alexandra
+Grupă:  333 CA - ACS CTI
+
+# Tema 1 - Marketplace
+
+Organizare
+-
+1. Explicație pentru soluția aleasă:
+    * În cadrul soluției propuse, fiecare producer primește de la marketplace
+      un id care să îl identifice și fiecare consumer un cart_id.
+
+    * Pentru a contoriza câte produse are un producer de vânzare la un anumit
+      moment de timp ne folosim de un dicționar în clasa marketplace ce mapează
+      elemente id_producer - contor_produse. În momentul în care un producer
+      publică un produs, contorul crește, iar când un consumator plasează
+      o comandă ce conține un produs aparținând producătorului, contorul
+      se decrementează.
+
+    * În momentul în care un producător încearcă să publice un produs se
+      disting următoarele cazuri
+      * fie a depășit numărul permis de postări, fapt verificat prin interogări
+        în dicționarul din marketplace, caz în care producerul așteaptă și
+        reîncearcă să publice produsul respectiv, fără a trece la altul.
+      * fie reușește să îl publice, produsul fiind adăugat la capătul
+        vectorului comun de produse din marketplace.
+
+    * În momentul în care se adaugă un produs în vectorul din marketplace,
+      acestuia îi sunt atribuite și următoarele detalii:
+      * producer_id -: mai mulți producători pot publica același produs
+      * cart_id/-1  -: pentru a verifica la un moment de timp dacă produsul
+                       este disponibil (caz marcat prin -1), sau id-ul
+                       cumpărătorului în caz contrar.
+      * un lock -: Precum într-un marketplace real, doar un consumator are voie
+                   să modifice starea unui produs (să îl adauge/scoată din coș)
+                   Este inevitabil ca operațiile să fie făcute atomice, însă
+                   nu vrem să blocăm restul consumatorilor din a modifca alte
+                   produse disponibile. Astfel, asociem fiecărui obiect câte
+                   un lock.
+
+    * În momentul în care un consumator vrea să adauge/scoată un obiect
+      din coș, folosește lock-ul acestuia, modifică starea acestuia în
+      vectorul de produse din marketplace și adaugă/elimină produsul
+      din lista proprie de produse.
+
+    * Obiectele rămân în vectorul comun până în momentul în care un consumator
+      plasează comanda finală pentru a nu bloca întreaga listă, deoarece
+      operațiile pe listă sunt thread-safe.
+
+2. Considerente
+    * Abordarea mea consider că este utilă deoarece încearcă să replice cum
+      funcționează un marketplace real.
+    * Din punct de vedere al Lock-urilor asociate fiecărui element obținem
+      un trade off al memoriei utilizate, dar avem garanția că pe scară
+      largă marketplace-ul nu se limitează la un singur consumator să modifice
+      la un moment de timp starea unui singur produs.
+
+3. Cazuri speciale
+    * Consumatorii pot modifica în paralel starea obiectelor disponibile în
+      marketplace, însă doar un consumator poate modifica starea unui obiect
+      la un moment de timp.
+    * Am adăugat log-uri de eroare pentru a verifica acuratețea parametrilor
+      cu care sunt apelate metodele din marketplace.
+    * Am adăugat unit tests pentru cazurile limită ale metodelor.
+
+Implementare
+-
+
+* Consider ca întreg enunțul temei a fost implementat, conform celor descrise
+  anterior. Am implementat operațiile de add_to_cart/remove_from_cart,
+  logica de publish a producătorului.
+* Din punct de vedere al funcționalităților extra, am adăugat o funcționalitate
+  prin care consumatorii pot adăuga în coș în paralel produse, atomicitatea
+  operațiilor fiind la nivel de obiect, nu de listă.
+
+Resurse utilizate
+-
+
+* https://docs.python.org/3/library/logging.html
+* https://docs.python.org/3/howto/logging.html
+* https://docs.python.org/3/library/unittest.html
+* https://docs.python.org/3/library/logging.html#logging.Logger.error
+* https://ocw.cs.pub.ro/courses/asc/laboratoare/02
+* https://ocw.cs.pub.ro/courses/asc/laboratoare/01
+
+
